@@ -1,6 +1,6 @@
 <script>
     import { onMount } from "svelte";
-    import Card from "./card.svelte";
+    import Card from "./Card.svelte";
     import { isPlaying, showingHighScore, score, cardsOpen, timeRem, highScore, gameIsActive } from "../stores/stores";
     import Timer from "./Timer.svelte";
     import Loader from "./Loader.svelte";
