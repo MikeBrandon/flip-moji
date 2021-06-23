@@ -5,8 +5,10 @@
     let viewed = false;
 
     function handleClick() {
+        if (!viewed) {
+            cardsOpen.update(n => n-1);
+        }
         viewed = true;
-        cardsOpen.update(n => n-1);
     }
 </script>
 
