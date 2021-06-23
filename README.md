@@ -1,105 +1,157 @@
-*Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
+# FlipMoji
 
----
+Flip moji is a simple speed and luck-based mini-game webapp.
 
-# svelte app
+## Description
 
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
+The user has to find out which emoji appears odd number of times and pick any of its numbers. The time remaining when he gets the right answer are awarded to him/her as points and are multiplied by the number of cards not flipped for a bonus multiplier.
 
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
+## Dependencies
 
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
+* Svelte 3.0.0
+* Tailwind CSS
+* Typescript
+
+## Style
+
+### Fonts
+
+* Main font used was [Doland](https://www.dafont.com/doland.font).
+* Font used for the flipMoji logo was [Stereofidelic](https://www.dafont.com/stereofidelic.font).
+
+## Components
+
+### Stores
+
+```javascript
+import { writable } from "svelte/store";
+
+export const isPlaying = writable(0);
+export const showingHighScore = writable(0);
+export const score = writable(0);
+export const highScore = writable(0);
+export const cardsOpen = writable(0);
+export const timeRem = writable(0);
+export const gameIsActive = writable(0);
 ```
 
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
+All the stores are writable stores used by different components in the web app.
 
+* __*isPlaying*__ - becomes true when he player clicks Play on the landing page and activates the Main component for the game and turns false when the user closes the Main component thus returning the user to the landing page.
 
-## Get started
+* __*showingHighScore*__ - becomes true after the user submits a card number to show the player score and high score and becomes false every time a new game is started.
 
-Install the dependencies...
+* __*score*__ - stores the score of the player for each round and is reset every time a game is started.
 
-```bash
-cd svelte-app
-npm install
+* __*highScore*__ - stores the high score of the player for each round and is reset every time the score store becomes greater than it.
+
+* __*cardsOpen*__ - stores the number of cards that have not been fliped by the user and the value is decremented by 1 every time the player flips a card and is reset every time a game starts.
+
+* __*timeRem*__ - is the time remaining for a round to end and is reset everytime a new game starts.
+
+* __*gameIsActive*__ - stores the state of the game. It becomes true when the user starts a round and becomes false when the round ends.
+
+### Navbar
+
+The Navbar background turns to #ffde03 color and text to black from #ffde03 when the user scrolls past 100 pixels. It achieves this by receiving a value as a prop from App.svelte.
+
+A variable y is bound to the scrollY attribute for the window.
+```svelte
+<svelte:window bind:scrollY={y}/>
 ```
 
-...then start [Rollup](https://rollupjs.org):
-
-```bash
-npm run dev
+The boolean showNavbar is set to true when y becomes greater than 100 (user scrolls 100 pixels) otherwise is false and updates everytime the value of y changes.
+```javascript
+$: showNavbar = y>100;
 ```
 
-Navigate to [localhost:5000](http://localhost:5000). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
+A change in the value of showNavbar triggers the value of the props passed to the Navbar to become its components classes.
+```javascript
+$: navclass = showNavbar ? "nav-container": "";
+$: textClass = showNavbar ? "textwhite": "";
 
-By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
-
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
-
-## Building and running in production mode
-
-To create an optimised version of the app:
-
-```bash
-npm run build
+<Navbar showNav={navclass} textClass={textClass}/>
 ```
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
+The props showNav and textClass are passed to the elements as class names that are already styled.
+```svelte
+<div class="{showNav} p-3 text-black flex fixed w-full transition-all">
+<p class="{textClass} text-5xl ml-4 logo">flipMoji</p>
+</div>
+```
+__CSS:__
+```css
+.nav-container {
+        background-color: #ffde03;
+        transition-duration: 400ms;
+}
 
-
-## Single-page app mode
-
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
-
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
-
-```js
-"start": "sirv public --single"
+.textwhite {
+        color: black;
+        transition-duration: 400ms;
+}
 ```
 
-## Using TypeScript
+### Banner
 
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
+The banner holds the Homepage entry state and shifts to the Main Component when the user clicks on the Play Button. It checks for the state value of isPlaying boolean to determine which component to show.
 
-```bash
-node scripts/setupTypeScript.js
+```
+{#key $isPlaying}
+        {#if $isPlaying}
+            <Main/>
+        {:else}
+            <Playnow/>
+        {/if}
+{/key}
 ```
 
-Or remove the script via:
+### Main
 
-```bash
-rm scripts/setupTypeScript.js
+This component holds all the functionality for the game in all its states.
+
+It has an array of all the names of the emoji files to be used by the game.
+```
+const emojis = [
+    {"id": 0, "name": "001-alien"},
+    {"id": 1, "name": "002-amazed"},
+    {"id": 2, "name": "003-amazed"},
+    {"id": 3, "name": "004-amazed"},
+    {"id": 4, "name": "005-anger"},
+    {"id": 5, "name": "006-anger"},
+    {"id": 6, "name": "007-angry"},
+    {"id": 7, "name": "008-angry"},
+    {"id": 8, "name": "009-baby"},
+    {"id": 9, "name": "010-kiss"},
+    {"id": 10, "name": "011-kiss"},
+];
 ```
 
-## Deploying to the web
+Two other arrays are initialized. picked stores the emojis to be used in a round of the game and cards stores the emoji and id for each card for a single round of the game.
 
-### With [Vercel](https://vercel.com)
+```
+let picked = [
+    {"id": 0, "name": ""},
+    {"id": 1, "name": ""},
+    {"id": 2, "name": ""},
+    {"id": 3, "name": ""},
+    {"id": 4, "name": ""}
+];
 
-Install `vercel` if you haven't already:
-
-```bash
-npm install -g vercel
+let cards = [
+    {"id": 0, "name": ""},
+    {"id": 1, "name": ""},
+    {"id": 2, "name": ""},
+    {"id": 3, "name": ""},
+    {"id": 4, "name": ""},
+    {"id": 5, "name": ""},
+    {"id": 6, "name": ""},
+    {"id": 7, "name": ""},
+    {"id": 8, "name": ""},
+];
 ```
 
-Then, from within your project folder:
+## Version History
 
-```bash
-cd public
-vercel deploy --name my-project
-```
-
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
-```
+* 0.1
+    * Initial Release

@@ -3,7 +3,7 @@
 	import Banner from "./components/Banner.svelte";
 	
 	let y;
-	$: showNavbar = y>100 ;
+	$: showNavbar = y>100;
 	$: navclass = showNavbar ? "nav-container": "";
 	$: textClass = showNavbar ? "textwhite": "";
 </script>

@@ -4,7 +4,6 @@
     import { isPlaying, showingHighScore, score, cardsOpen, timeRem, highScore, gameIsActive } from "../stores/stores";
     import Timer from "./Timer.svelte";
     import Loader from "./Loader.svelte";
-    import { fade } from "svelte/transition";
 
     const emojis = [
         {"id": 0, "name": "001-alien"},
